@@ -139,8 +139,7 @@ int main(void)
 
 		unsigned int indices[] = {
 			0, 1, 4,
-			2, 3, 4,
-			0, 4, 3
+			2, 3, 4
 		};
 
 		unsigned int Indices_Size = sizeof(indices) / sizeof(unsigned int);
