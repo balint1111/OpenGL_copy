@@ -15,6 +15,8 @@
 #include "Shader.h"
 #include "Texture.h"
 
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 
 int main(void)
@@ -69,9 +71,9 @@ int main(void)
 
 		unsigned int Indices_Size = sizeof(indices) / sizeof(unsigned int);
 
-		unsigned int vao;
-		GLCall(glGenVertexArrays(1, &vao));
-		GLCall(glBindVertexArray(vao));
+		//unsigned int vao;
+		//GLCall(glGenVertexArrays(1, &vao));
+		//GLCall(glBindVertexArray(vao));
 
 		VertexArray va;
 		VertexBuffer vb(positions, Positions_Size * sizeof(float));
@@ -84,9 +86,12 @@ int main(void)
 		//Indexbuffer bind
 		IndexBuffer ib(indices, Indices_Size);
 
-		Shader shader("res/shaders/basic.shader");
+		glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+
+		Shader shader("res/shaders/texture.shader");
 		shader.Bind();
 		shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
+		shader.SetUniformMat4f("u_MVP", proj);
 
 		Texture texture("res/textures/the_cherno.png");
 		texture.Bind();
