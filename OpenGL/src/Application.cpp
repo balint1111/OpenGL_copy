@@ -18,6 +18,12 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
+#include "tests/TestClearColor.h"
+
 
 int main(void)
 {
@@ -44,7 +50,7 @@ int main(void)
 	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
 
-	glfwSwapInterval(1);
+	//glfwSwapInterval(1);
 
 	if (glewInit() != GLEW_OK)
 		std::cout << "Error!" << std::endl;
@@ -52,84 +58,37 @@ int main(void)
 	GLCall(std::cout << glGetString(GL_VERSION) << std::endl);
 
 	{
-		float positions[] = {
-			 0.0f,  200.0f, 0.0f, 0.0f, //0
-			 200.0f, 200.0f, 1.0f, 0.0f, //1
-			 200.0f,  0.0f, 1.0f, 1.0f, //2
-			 0.0f,  0.0f, 0.0f, 1.0f //3
-
-		};
-
-		unsigned int Positions_Size = sizeof(positions) / sizeof(float);
-
-		unsigned int indices[] = {
-			0, 1, 2,
-			2, 3, 0
-		};
+		
 		GLCall(glEnable(GL_BLEND));
 		GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-		unsigned int Indices_Size = sizeof(indices) / sizeof(unsigned int);
-
-		//unsigned int vao;
-		//GLCall(glGenVertexArrays(1, &vao));
-		//GLCall(glBindVertexArray(vao));
-
-		VertexArray va;
-		VertexBuffer vb(positions, Positions_Size * sizeof(float));
-		VertexBufferLayout layout;
-		layout.Push<float>(2);
-		layout.Push<float>(2);
-		va.AddBuffer(vb, layout);
-
-
-		//Indexbuffer bind
-		IndexBuffer ib(indices, Indices_Size);
-
-		glm::mat4 proj = glm::ortho(0.0f, 960.0f, 540.0f, 0.0f, -1.0f, 1.0f);
-		glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(100, 0, 0));
-		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(200, 200, 0));
-
-		glm::mat4 mvp = proj * view * model;
-
-		Shader shader("res/shaders/texture.shader");
-		shader.Bind();
-		shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
 		
-
-		Texture texture("res/textures/the_cherno.png");
-		texture.Bind();
-		shader.SetUniform1i("u_Texture", 0);
-		shader.SetUniformMat4f("u_MVP", mvp);
-
-		va.UnBind();
-		vb.Unbind();
-		ib.Unbind();
-		shader.unBind();
-
 		Renderer renderer;
 
+		ImGui::CreateContext();
+		ImGui_ImplGlfw_InitForOpenGL(window, true);
+		ImGui_ImplOpenGL3_Init("#version 330");
+		ImGui::StyleColorsDark();
 
-		float r = 0.0f;
-		float increment = 0.05f;
+		test::TestClearColor test;
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
 		{
 			/* Render here */
 			renderer.Clear();
 
-			shader.Bind();
-			shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
+			test.OnUpdate(0.0f);
+			test.OnRender();
 
-			renderer.Draw(va, ib, shader);
+			ImGui_ImplOpenGL3_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
 
+			
+			test.OnImGuiRender();
 
-			if (r > 1.0f)
-				r = 1.0f, increment = -0.05f;
-			else if (r < 0.0f)
-				r = 0.0f, increment = 0.05f;
-
-			r += increment;
+			ImGui::Render();
+			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 			/* Swap front and back buffers */
 			glfwSwapBuffers(window);
 
@@ -137,6 +96,9 @@ int main(void)
 			glfwPollEvents();
 		}
 	}
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 	glfwTerminate();
 	return 0;
 }
